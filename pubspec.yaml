@@ -1,0 +1,41 @@
+name: naculis
+description: "AI-Powered Mental Wellness App"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+dependencies:
+  flutter:
+    sdk: flutter
+
+  google_fonts: ^6.1.0
+  get: ^4.7.2
+  share_plus: ^11.0.0
+  image_picker: ^1.1.2
+  webview_flutter: ^4.13.0
+  flutter_sound: ^9.2.13
+  path_provider: ^2.0.14
+  permission_handler: ^11.3.1
+  ffmpeg_kit_flutter_new: ^3.2.0
+  shared_preferences: ^2.1.1
+  intl: ^0.18.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/images/bg/
+    - assets/images/flags/
+    - assets/images/activitys/
+    - assets/images/feels/
+    - assets/images/setup_progress/
+    - assets/images/nav_icons/
+    - assets/images/appbar_icons/
+    - assets/images/home/
+    - assets/images/quiz/
+    - assets/images/user_profile/
