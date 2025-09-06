@@ -28,7 +28,7 @@ class _GreetingsIntroScreenState extends State<GreetingsIntroScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(),
+      appBar: CustomAppBar(),
       body: Obx(() {
         if (controller.levelDetails.isEmpty) {
           return const Center(child: CircularProgressIndicator());

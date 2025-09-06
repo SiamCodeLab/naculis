@@ -26,7 +26,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(),
+      appBar:  CustomAppBar(),
       body: Obx(() {
         if (controller.levelDetails.isEmpty) {
           return const Center(child: CircularProgressIndicator());

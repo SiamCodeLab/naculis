@@ -19,10 +19,22 @@ class _SplashLoadingScreenState extends State<SplashLoadingScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 3), ()async{
-      if (await UserInfo.getIsLoggedIn()) {
-        Get.offAllNamed(RouteName.home);
-      } else {
+    Future.delayed(const Duration(seconds: 3), () async {
+      try {
+        print('Checking login status...');
+        bool isLoggedIn = await UserInfo.getIsLoggedIn();
+        print('Is logged in: $isLoggedIn');
+
+        if (isLoggedIn) {
+          print('Navigating to home...');
+          Get.offAllNamed(RouteName.home);
+        } else {
+          print('Navigating to langSplash...');
+          Get.offAllNamed(RouteName.langSplash);
+        }
+      } catch (e) {
+        print('Error in splash navigation: $e');
+        // error paileo jeno langSplash e jay,, pore change kore nio eta
         Get.offAllNamed(RouteName.langSplash);
       }
     });

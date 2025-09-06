@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 import '../../core/const/image_icon.dart';
 import '../user_profile/user_profile_controller/profile_controller.dart';
 import 'appbar_items.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CustomAppBar({super.key});
+  CustomAppBar({super.key});
+
+  // controller কে সঠিকভাবে initialize করলাম
+  final UserController controller = Get.put(UserController());
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<UserController>();
-
     return Container(
       color: Theme.of(context).primaryColor,
       child: SafeArea(
@@ -25,32 +25,32 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   Obx(
-                    () => AppbarItems(
+                        () => AppbarItems(
                       icon: ImageAndIconConst.appbarIcon1,
                       count: controller.user.value.hearts,
                     ),
                   ),
                   Obx(
-                    () => AppbarItems(
+                        () => AppbarItems(
                       icon: ImageAndIconConst.appbarIcon2,
                       count: controller.user.value.dailyStreak,
                     ),
                   ),
                   Obx(
-                    () => AppbarItems(
+                        () => AppbarItems(
                       icon: ImageAndIconConst.appbarIcon3,
                       count: controller.user.value.xp,
                     ),
                   ),
                   Obx(
-                    ()=> AppbarItems(
+                        () => AppbarItems(
                       icon: ImageAndIconConst.appbarIcon4,
                       count: controller.user.value.gem,
                     ),
                   ),
                 ],
               ),
-            ), // your icons row
+            ),
           ],
         ),
       ),
