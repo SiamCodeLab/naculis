@@ -32,18 +32,13 @@ class LevelsController extends GetxController {
       );
 
       print('Game level statu code ${response.statusCode}, and body: ${response.body}');
-      Get.snackbar(
-        'Response Status',
-        'Status Code: ${response.statusCode}',
-        snackPosition: SnackPosition.BOTTOM,
-        animationDuration: const Duration(milliseconds: 2000),
-      );
+
       if (response.statusCode == 200) {
         final List<dynamic> jsonResponse = jsonDecode(response.body);
         levelList.value = LevelModel.fromJsonList(jsonResponse);
         print(levelList);
       } else {
-        // Get.snackbar('Error', 'Server returned ${response.statusCode}');
+        Get.snackbar('Error', 'Server returned ${response.statusCode}');
       }
     } catch (e) {
       Get.snackbar('Error', e.toString());
