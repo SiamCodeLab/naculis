@@ -58,24 +58,43 @@ Future<void> main() async {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
-
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  Locale? _locale;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLocale();
+  }
+
+  Future<void> _loadLocale() async {
+    final locale = await UserInfo.getLocale();
+    setState(() {
+      _locale = locale ?? const Locale('en', 'US');
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_locale == null) {
+      // Show a splash/loading screen while locale is loading
+      return const SizedBox.shrink();
+    }
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       translations: Message(),
-
-      locale: const Locale('en', 'US'),
+      locale: _locale,
       fallbackLocale: const Locale('en', 'US'),
-
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: ThemeMode.light,
-
-      // initialRoute: isLoggedIn ? RouteName.home : RouteName.signin,
       initialRoute: RouteName.loadingSplash,
       getPages: AppRoute.pages,
     );

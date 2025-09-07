@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserInfo {
@@ -50,6 +52,29 @@ class UserInfo {
   static Future<bool> getIsPremium() async{
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getBool('is_premium') ?? false;
+  }
+
+  // =======User Pref Language======= //
+
+  static Future<void> setLocale(Locale locale) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('locale_language_code', locale.languageCode);
+    await prefs.setString('locale_country_code', locale.countryCode ?? '');
+  }
+
+  // Get Locale
+  static Future<Locale?> getLocale() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? languageCode = prefs.getString('locale_language_code');
+    final String? countryCode = prefs.getString('locale_country_code');
+
+    if (languageCode == null) return null;
+
+    if (countryCode != null && countryCode.isNotEmpty) {
+      return Locale(languageCode, countryCode);
+    } else {
+      return Locale(languageCode);
+    }
   }
 
 

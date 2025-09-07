@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:naculis/core/const/image_icon.dart';
 
 import '../../../core/local_storage/user_info.dart';
 import '../../../routes/route_name.dart';
-import '../../home/controller/home_controller.dart';
-import '../../user_profile/user_profile_controller/profile_controller.dart';
 
 class SplashLoadingScreen extends StatefulWidget {
   const SplashLoadingScreen({super.key});
@@ -13,31 +12,47 @@ class SplashLoadingScreen extends StatefulWidget {
   State<SplashLoadingScreen> createState() => _SplashLoadingScreenState();
 }
 
-class _SplashLoadingScreenState extends State<SplashLoadingScreen> {
-
+class _SplashLoadingScreenState extends State<SplashLoadingScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
+
+    // Controller runs for 3 seconds
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    );
+
+    // Animate from 0 -> 1
+    _animation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+
+    _controller.forward();
+
+    // Navigation after animation is done
     Future.delayed(const Duration(seconds: 3), () async {
       try {
-        print('Checking login status...');
         bool isLoggedIn = await UserInfo.getIsLoggedIn();
-        print('Is logged in: $isLoggedIn');
-
         if (isLoggedIn) {
-          print('Navigating to home...');
           Get.offAllNamed(RouteName.home);
         } else {
-          print('Navigating to langSplash...');
           Get.offAllNamed(RouteName.langSplash);
         }
       } catch (e) {
-        print('Error in splash navigation: $e');
-        // error paileo jeno langSplash e jay,, pore change kore nio eta
         Get.offAllNamed(RouteName.langSplash);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -51,7 +66,7 @@ class _SplashLoadingScreenState extends State<SplashLoadingScreen> {
             height: double.infinity,
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: const AssetImage('assets/images/bg/splash_bg.jpg'),
+                image: const AssetImage(ImageAndIconConst.splashBg),
                 fit: BoxFit.cover,
                 colorFilter: ColorFilter.mode(
                   Theme.of(context).colorScheme.primary.withOpacity(0.8),
@@ -63,33 +78,37 @@ class _SplashLoadingScreenState extends State<SplashLoadingScreen> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Image.asset(width: 300, 'assets/images/logo.png'),
+                  Image.asset(width: 300, ImageAndIconConst.logoW),
                   SizedBox(height: Get.height * 0.04),
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      SizedBox(
-                        width: 100,
-                        height: 100,
-                        child: CircularProgressIndicator(
-                          value: 0.7,
-                          strokeWidth: 6,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white70,
+                  AnimatedBuilder(
+                    animation: _animation,
+                    builder: (context, child) {
+                      return Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SizedBox(
+                            width: 100,
+                            height: 100,
+                            child: CircularProgressIndicator(
+                              value: _animation.value,
+                              strokeWidth: 6,
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                Colors.white70,
+                              ),
+                              backgroundColor: Colors.grey,
+                            ),
                           ),
-                          backgroundColor: Colors.grey,
-                        ),
-                      ),
-                      Text(
-                        '70%',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyLarge
-                            ?.copyWith(color: Colors.white),
-                      ),
-                    ],
+                          Text(
+                            "${(_animation.value * 100).toInt()}%",
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyLarge
+                                ?.copyWith(color: Colors.white),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),

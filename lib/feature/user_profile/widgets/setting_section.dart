@@ -6,10 +6,12 @@ import 'package:naculis/feature/user_profile/widgets/setting_toggle_item.dart';
 
 import '../../../core/const/app_string.dart';
 import '../../../core/const/nav_ids.dart';
+import '../../../core/local_storage/user_info.dart';
 import '../../../routes/route_name.dart';
 import '../../home/controller/home_controller.dart';
 import '../../profile_set_up/slang_controller/often_slang_controller.dart';
 import '../user_profile_controller/logout controller.dart';
+
 class SettingsSection extends StatefulWidget {
   const SettingsSection({super.key});
 
@@ -18,16 +20,49 @@ class SettingsSection extends StatefulWidget {
 }
 
 class SettingsSectionState extends State<SettingsSection> {
+  String savedLang = 'en'; // default
+  bool isLoadingLang = true; // 👈 wait until language is loaded
+
+  @override
+  void initState() {
+    super.initState();
+    _getSavedLanguage();
+  }
+
+  Future<void> _getSavedLanguage() async {
+    Locale? locale = await UserInfo.getLocale();
+    setState(() {
+      savedLang = locale?.languageCode ?? 'en';
+      isLoadingLang = false;
+    });
+  }
+
+  Future<void> _changeLanguage(bool isSpanish) async {
+    final postLanguageController = Get.put(SlangController(), permanent: true);
+    final levelController = Get.put(LevelsController());
+
+    if (isSpanish) {
+      Get.updateLocale(const Locale('es', 'ES'));
+      await UserInfo.setLocale(const Locale('es', 'ES'));
+      await postLanguageController.postlanguage("es");
+    } else {
+      Get.updateLocale(const Locale('en', 'US'));
+      await UserInfo.setLocale(const Locale('en', 'US'));
+      await postLanguageController.postlanguage("en");
+    }
+
+    // refresh levels
+    levelController.fetchLevels();
+
+    setState(() {
+      savedLang = isSpanish ? 'es' : 'en';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Read saved values (fallbacks included)
     bool isDark = (Theme.of(context).brightness == Brightness.dark);
-    String savedLang = 'en';
-
     final logoutController = Get.put(LogoutController());
-    final levelController = Get.put(LevelsController());
-    final postLanguageController = Get.put(SlangController(),permanent: true);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -73,21 +108,19 @@ class SettingsSectionState extends State<SettingsSection> {
           ),
 
           // Language Toggle
-          SettingsToggleItem(
-            icon: Icons.graphic_eq_outlined,
+          isLoadingLang
+              ? const Center(
+            child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: CircularProgressIndicator(),
+            ),
+          )
+              : SettingsToggleItem(
+            icon: Icons.language_outlined,
             title: AppStringEn.changeLanguage.tr,
-            initialValue: savedLang == 'es',
-            onChanged: (value) async {
-              if (value) {
-                Get.updateLocale(const Locale('es', 'ES'));
-                await postLanguageController.postlanguage("es");
-                levelController.fetchLevelDetails();
-              } else {
-                Get.updateLocale(const Locale('en', 'US'));
-                await postLanguageController.postlanguage("en");
-                levelController.fetchLevelDetails();
-
-              }
+            initialValue: savedLang == 'es', // 👈 saved value
+            onChanged: (value) {
+              _changeLanguage(value);
             },
           ),
 

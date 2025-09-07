@@ -1,4 +1,8 @@
 class ImageAndIconConst {
+
+  // Logo
+  static const logoW = 'assets/images/logo.png';
+
   //bottom navigation bar items
   static const navIcon1 = 'assets/images/nav_icons/Frame 2147225831.png';
   static const navIcon2 = 'assets/images/nav_icons/Frame 1.png';
@@ -21,7 +25,6 @@ class ImageAndIconConst {
   static const mic = 'assets/images/entypo_modern-mic.png';
 
   //road background
-
   static const roadLight = 'assets/images/road_light.png';
   static const roadDark = 'assets/images/road_dark.png';
   static const road = 'assets/images/road.png';
@@ -42,4 +45,8 @@ class ImageAndIconConst {
 
   static const diamonds = "assets/images/diamond.png";
   static const brain = "assets/images/brain.png";
+
+
+  // Background images
+  static const splashBg = 'assets/images/bg/splash_bg.jpg';
 }

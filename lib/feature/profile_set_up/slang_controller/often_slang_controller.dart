@@ -110,7 +110,7 @@ class SlangController extends GetxController {
       if (response.statusCode == 200) {
         Get.toNamed(RouteName.home);
       } else {
-        Get.snackbar('Error', 'Server returned ${response.statusCode}');
+        Get.snackbar('Error', 'Server returned ${response.statusCode} for setting language please try again' );
       }
     } catch (e) {
       print('Error posting language data: $e');

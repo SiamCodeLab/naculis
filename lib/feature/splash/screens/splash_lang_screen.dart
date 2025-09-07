@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:naculis/core/local_storage/user_info.dart';
 
 import '../../../routes/route_name.dart';
 import '../widgets/langauge_card.dart';
@@ -59,6 +60,8 @@ class _SplashLangScreenState extends State<SplashLangScreen> {
                     title: 'US English',
                     subTitle: 'What \'s good? Welcome to Naculis',
                     onPress: () {
+                      Get.updateLocale(const Locale('en', 'US'));
+                      UserInfo.setLocale(const Locale('en', 'US'));
                       Get.offNamed(RouteName.signin);
                     },
                   ),
@@ -70,6 +73,7 @@ class _SplashLangScreenState extends State<SplashLangScreen> {
                     subTitle: '"¿Qué onda? Bienvenido a Naculis',
                     onPress: () {
                       Get.updateLocale(const Locale('es', 'ES'));
+                      UserInfo.setLocale(const Locale('es', 'ES'));
                       Get.offNamed(RouteName.signin);
                     },
                   ),
