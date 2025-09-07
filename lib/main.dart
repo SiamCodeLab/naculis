@@ -72,6 +72,16 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _loadLocale();
+    _loadTheme().then((isDarkMode) {
+      setState(() {
+        // Update the theme mode based on user preference
+        if (isDarkMode) {
+          Get.changeThemeMode(ThemeMode.dark);
+        } else {
+          Get.changeThemeMode(ThemeMode.light);
+        }
+      });
+    });
   }
 
   Future<void> _loadLocale() async {
@@ -81,10 +91,14 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  Future<bool> _loadTheme() async {
+    bool isDarkMode = await UserInfo.getIsDarkMode();
+    return isDarkMode;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_locale == null) {
-      // Show a splash/loading screen while locale is loading
       return const SizedBox.shrink();
     }
     return GetMaterialApp(

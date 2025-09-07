@@ -77,6 +77,17 @@ class UserInfo {
     }
   }
 
+  // =======Theme======= //
+  static Future<void> setIsDarkMode(bool value) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('is_dark_mode', value);
+  }
+
+  static Future<bool> getIsDarkMode() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('is_dark_mode') ?? false;
+  }
+
 
 
 

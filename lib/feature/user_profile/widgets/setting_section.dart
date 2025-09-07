@@ -21,19 +21,23 @@ class SettingsSection extends StatefulWidget {
 
 class SettingsSectionState extends State<SettingsSection> {
   String savedLang = 'en'; // default
-  bool isLoadingLang = true; // 👈 wait until language is loaded
+  bool isDarkMode = false; // default
+  bool isLoading = true; // 👈 wait until prefs loaded
 
   @override
   void initState() {
     super.initState();
-    _getSavedLanguage();
+    _loadPrefs();
   }
 
-  Future<void> _getSavedLanguage() async {
+  Future<void> _loadPrefs() async {
     Locale? locale = await UserInfo.getLocale();
+    bool dark = await UserInfo.getIsDarkMode();
+
     setState(() {
       savedLang = locale?.languageCode ?? 'en';
-      isLoadingLang = false;
+      isDarkMode = dark;
+      isLoading = false;
     });
   }
 
@@ -59,10 +63,21 @@ class SettingsSectionState extends State<SettingsSection> {
     });
   }
 
+  Future<void> _changeTheme(bool value) async {
+    setState(() {
+      isDarkMode = value;
+    });
+    await UserInfo.setIsDarkMode(value);
+    Get.changeThemeMode(value ? ThemeMode.dark : ThemeMode.light);
+  }
+
   @override
   Widget build(BuildContext context) {
-    bool isDark = (Theme.of(context).brightness == Brightness.dark);
     final logoutController = Get.put(LogoutController());
+
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -97,28 +112,21 @@ class SettingsSectionState extends State<SettingsSection> {
           // 🔹 Settings Section
           SectionTitle(AppStringEn.settings.tr),
 
-          // Dark Mode Toggle
+          // Dark Mode Toggle (persistent)
           SettingsToggleItem(
             icon: Icons.dark_mode_outlined,
             title: AppStringEn.darkmode.tr,
-            initialValue: isDark,
+            initialValue: isDarkMode,
             onChanged: (value) {
-              Get.changeThemeMode(value ? ThemeMode.dark : ThemeMode.light);
+              _changeTheme(value);
             },
           ),
 
-          // Language Toggle
-          isLoadingLang
-              ? const Center(
-            child: Padding(
-              padding: EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(),
-            ),
-          )
-              : SettingsToggleItem(
+          // Language Toggle (persistent)
+          SettingsToggleItem(
             icon: Icons.language_outlined,
             title: AppStringEn.changeLanguage.tr,
-            initialValue: savedLang == 'es', // 👈 saved value
+            initialValue: savedLang == 'es',
             onChanged: (value) {
               _changeLanguage(value);
             },
