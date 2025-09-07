@@ -12,8 +12,8 @@ class EmailPutScreen extends StatefulWidget {
 }
 
 class _EmailPutScreenState extends State<EmailPutScreen> {
-  // Initialize the controller using Get.put()
-  final ForgotPasswordController controller = Get.find<ForgotPasswordController>();
+
+  final ForgotPasswordController controller = Get.put(ForgotPasswordController());
 
   @override
   Widget build(BuildContext context) {

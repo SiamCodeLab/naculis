@@ -14,7 +14,7 @@ class RegistrationOtpScreen extends StatefulWidget {
 }
 
 class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
-  final RegistrationOtpController controller = Get.find<RegistrationOtpController>();
+  final RegistrationOtpController controller = Get.put(RegistrationOtpController());
 
   late List<FocusNode> _focusNodes;
   late List<TextEditingController> _controllers;

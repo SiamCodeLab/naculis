@@ -8,7 +8,7 @@ class SignupScreen extends StatelessWidget {
   SignupScreen({super.key});
 
 
-  final SignUpController controller = Get.find<SignUpController>();
+  final SignUpController controller = Get.put(SignUpController());
 
 
   @override

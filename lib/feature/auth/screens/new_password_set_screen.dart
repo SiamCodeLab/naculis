@@ -7,7 +7,7 @@ import '../controller/new_password_set_controller.dart';
 class NewPasswordSetScreen extends StatelessWidget {
   NewPasswordSetScreen({Key? key}) : super(key: key);
 
-  final NewPasswordSetController controller = Get.find<NewPasswordSetController>();
+  final NewPasswordSetController controller = Get.put(NewPasswordSetController());
 
 
   @override

@@ -14,7 +14,7 @@ class ForgotPasswordOtpScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordOtpScreenState extends State<ForgotPasswordOtpScreen> {
-  final ForgotPasswordOtpController controller = Get.find<ForgotPasswordOtpController>();
+  final ForgotPasswordOtpController controller = Get.put(ForgotPasswordOtpController());
 
   late List<FocusNode> _focusNodes;
   late List<TextEditingController> _controllers;
