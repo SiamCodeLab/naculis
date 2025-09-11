@@ -1,5 +1,6 @@
 class ApiEndpoints {
-  static const String baseUrl = 'http://103.186.20.115:10002/api';
+  // static const String baseUrl = 'http://103.186.20.115:10002/api';
+  static const String baseUrl = 'http://10.10.7.85:9000/api';
 
 // Authentication Endpoints
   static const String signup = '$baseUrl/start-registration/';

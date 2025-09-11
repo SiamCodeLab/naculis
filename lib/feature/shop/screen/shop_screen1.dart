@@ -47,56 +47,70 @@ class ShopScreen1 extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Obx(
-                    () => _buildCard(
+                    () {
+                  int current = controller.heartsData.value['current_hearts'] ?? 0;
+                  int max = controller.heartsData.value['max_hearts'] ?? 5;
 
-                  icon: Icons.favorite_border,
-                  title: AppStringEn.heartRecharge.tr,
-                  subtitle: controller.heartsData.value['current_hearts'] == controller.heartsData.value['max_hearts']
-                      ? AppStringEn.heartsFull.tr
-                      : '${controller.heartsData.value['current_hearts']} / ${controller.heartsData.value['max_hearts']}',
-                  footerText: controller.heartsData.value['current_hearts'] == controller.heartsData.value['max_hearts']
-                      ? Text(
-                    AppStringEn.heartsFull.tr,
-                    style: const TextStyle(
-                      color: Colors.green,
+                  return _buildCard(
+                    icon: Icons.favorite_border,
+                    title: AppStringEn.heartRecharge.tr,
+                    subtitle: current >= max
+                        ? AppStringEn.heartsFull.tr
+                        : '$current / $max',
+                    footerText: SizedBox(
+                      height: 50,
+                      width: double.infinity,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Refill buttons
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: controller.refillAllHeart,
+                              child: const Text(
+                                'Refill All Hearts',
+                                style: TextStyle(fontSize: 15, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: controller.refillOneHeart,
+                              child: const Text(
+                                'Refill One Heart',
+                                style: TextStyle(fontSize: 15, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          // Refresh button
+                          IconButton(
+                            onPressed: () async {
+                              controller.getAllHeart(); // fetch latest from server
+                              controller.heartsData.refresh(); // update UI instantly
+                            },
+                            icon: const Icon(Icons.refresh, color: Colors.blue),
+                            tooltip: 'Refresh Hearts',
+                          ),
+                        ],
+                      ),
+                    ),
+                    footerColor: Theme.of(context).colorScheme.secondary,
+                    titleStyle: const TextStyle(
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
+                      color: Color(0xFFF57C00),
                     ),
-                  )
-                      : SizedBox(
-                    height: 50,
-                    width: double.infinity,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,spacing: 10,
-                      children: [
-                        Expanded( // Wrap in Expanded to constrain size
-                          child: ElevatedButton(
-                            onPressed: controller.refillAllHeart,
-                            child: Text('Refill All Hearts',style: TextStyle(fontSize: 15,color: Colors.white),),
-                          ),
-                        ),
-                        Expanded( // Wrap in Expanded to constrain size
-                          child: ElevatedButton(
-                            onPressed: controller.refillOneHeart,
-                            child:  Text('Refill One Heart',style: TextStyle(fontSize: 15,color: Colors.white),),
-                          ),
-                        ),
-                      ],
+                    subtitleStyle: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black54,
                     ),
-                  ),
-                  footerColor: Theme.of(context).colorScheme.secondary,
-                  titleStyle: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFF57C00),
-                  ),
-                  subtitleStyle: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.black54,
-                  ),
-                  onPressed: () {
-                    Get.toNamed(RouteName.shop2, id: NavIds.shop);
-                  },
-                ),
+                    onPressed: () {
+                      Get.toNamed(RouteName.shop2, id: NavIds.shop);
+                    },
+                  );
+                },
               ),
 
               const SizedBox(height: 16),

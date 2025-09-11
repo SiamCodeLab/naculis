@@ -39,7 +39,7 @@ class QuestionCard extends StatelessWidget {
           Text(
             question,
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 22,
               fontWeight: FontWeight.w600,
             ),
             textAlign: TextAlign.center,

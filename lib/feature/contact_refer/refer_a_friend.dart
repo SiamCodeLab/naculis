@@ -12,7 +12,7 @@ class ReferFriend extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<UserController>();
+    final controller = Get.put(UserController());
     return Scaffold(
       appBar: ProfileAppBar(
         onBackPressed: () => Get.back(id: NavIds.profile),

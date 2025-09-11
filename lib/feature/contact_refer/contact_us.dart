@@ -6,16 +6,18 @@ import '../../core/const/nav_ids.dart';
 import '../widgets/profile_app_bar.dart';
 import 'controllers/contact_us_controller.dart';
 
-class ContactUs extends GetView<ContactUsController> {
+class ContactUs extends StatelessWidget {
   const ContactUs({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(ContactUsController());
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: ProfileAppBar(
-          onBackPressed: () => Get.back(id: NavIds.profile),
-          title: AppStringEn.contactUs.tr),
+        onBackPressed: () => Get.back(id: NavIds.profile),
+        title: AppStringEn.contactUs.tr,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
@@ -50,8 +52,10 @@ class ContactUs extends GetView<ContactUsController> {
             ),
             const SizedBox(height: 6),
             customInputField(
-                controller.titleController,
-                AppStringEn.titleHint.tr, context),
+              controller.titleController,
+              AppStringEn.titleHint.tr,
+              context,
+            ),
 
             const SizedBox(height: 16),
 
@@ -68,7 +72,10 @@ class ContactUs extends GetView<ContactUsController> {
             const SizedBox(height: 6),
             customInputField(
               controller.messageController,
-                AppStringEn.messageHint.tr, context, maxLines: 5),
+              AppStringEn.messageHint.tr,
+              context,
+              maxLines: 5,
+            ),
 
             const SizedBox(height: 30),
 
@@ -79,7 +86,7 @@ class ContactUs extends GetView<ContactUsController> {
                 padding: const EdgeInsets.only(bottom: 20),
                 child: ElevatedButton(
                   onPressed: () {
-                   controller.sendContactUs();
+                    controller.sendContactUs();
                   },
                   child: Text(
                     AppStringEn.send.tr,
@@ -94,10 +101,9 @@ class ContactUs extends GetView<ContactUsController> {
     );
   }
 
-
   // Reusable input field
   Widget customInputField(
-      TextEditingController controller,
+    TextEditingController controller,
     String hint,
     BuildContext context, {
     int maxLines = 1,
@@ -107,43 +113,42 @@ class ContactUs extends GetView<ContactUsController> {
       controller: controller,
       maxLines: maxLines,
       decoration: InputDecoration(
-      hintText: hint,
-      hintStyle: TextStyle(color: Colors.grey),
-      filled: true, // 👈 Required to make background + border visible
-      fillColor: Colors.transparent,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 15,
-        vertical: 10,
-      ),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.white
-              : Colors.grey,
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.grey),
+        filled: true,
+        // 👈 Required to make background + border visible
+        fillColor: Colors.transparent,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 15,
+          vertical: 10,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
+                : Colors.grey,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
+                : Colors.grey,
+          ),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
+                : Colors.grey,
+          ),
+          borderRadius: BorderRadius.circular(10),
         ),
       ),
-      focusedBorder: OutlineInputBorder(
-        borderSide:BorderSide(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.white
-              : Colors.grey,
-        ),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.white
-              : Colors.grey,
-        ),
-        borderRadius: BorderRadius.circular(10),
-      ),
-    ),
-
     );
   }
-
 
   // Label style
   TextStyle get labelStyle => const TextStyle(
