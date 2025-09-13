@@ -171,10 +171,42 @@ class ChatController extends GetxController {
   }
 
   /// Load conversation history
+  // Future<void> loadConversationHistory(int convId) async {
+  //   try {
+  //     String? token = await UserInfo.getAccessToken();
+  //     final url = "${ApiEndpoints.baseUrl}/core/conversations/";
+  //
+  //     final response = await http.get(
+  //       Uri.parse(url),
+  //       headers: {"Authorization": "Bearer $token"},
+  //     );
+  //
+  //     print('History Response: ${response.body} and Status: ${response.statusCode}');
+  //
+  //     if (response.statusCode == 200) {
+  //       final body = jsonDecode(response.body);
+  //       messages.clear();
+  //
+  //       for (var msg in body['messages']) {
+  //         messages.add({
+  //           'message': msg['content'],
+  //           'isSender': msg['role'] == 'user',
+  //           'isVoice': false, // history is text only
+  //         });
+  //       }
+  //     } else {
+  //       Get.snackbar("History Error", "Code ${response.statusCode}",
+  //           snackPosition: SnackPosition.BOTTOM);
+  //     }
+  //   } catch (e) {
+  //     Get.snackbar("History Error", "$e", snackPosition: SnackPosition.BOTTOM);
+  //   }
+  // }
+
   Future<void> loadConversationHistory(int convId) async {
     try {
       String? token = await UserInfo.getAccessToken();
-      final url = "${ApiEndpoints.baseUrl}/core/conversations/$convId";
+      final url = "${ApiEndpoints.baseUrl}/core/conversations-history/";
 
       final response = await http.get(
         Uri.parse(url),
@@ -187,11 +219,14 @@ class ChatController extends GetxController {
         final body = jsonDecode(response.body);
         messages.clear();
 
-        for (var msg in body['messages']) {
+        final history = body['messages'] as List<dynamic>? ?? [];
+
+        for (var msg in history) {
           messages.add({
-            'message': msg['content'],
+            'message': msg['content'] ?? '',
             'isSender': msg['role'] == 'user',
             'isVoice': false, // history is text only
+            'created_at': msg['created_at'], // optional timestamp
           });
         }
       } else {
@@ -202,6 +237,8 @@ class ChatController extends GetxController {
       Get.snackbar("History Error", "$e", snackPosition: SnackPosition.BOTTOM);
     }
   }
+
+
 
   // -------------------- Playback --------------------
   Future<void> playVoice(String path) async {

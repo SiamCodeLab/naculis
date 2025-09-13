@@ -15,7 +15,7 @@ class Withdarw extends StatefulWidget {
 
 class _WithdarwState extends State<Withdarw> {
 
-  final WithdrawController controller = Get.find<WithdrawController>();
+  final WithdrawController controller = Get.put(WithdrawController());
 
   int selectedTab = 0;
   final List<String> tabs = [
