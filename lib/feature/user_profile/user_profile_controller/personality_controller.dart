@@ -9,11 +9,13 @@ import '../../../core/local_storage/user_info.dart';
 
 class PersonalityController extends GetxController {
   Rx<HashMap<String, dynamic>> personality = HashMap<String, dynamic>().obs;
+  RxBool isLoadingPersonality = false.obs;
 
 
   final url = Uri.parse(ApiEndpoints.personality);
 
   Future<void> getPersonality() async {
+    isLoadingPersonality.value = true;
     String? accessToken = await UserInfo.getAccessToken();
     try {
       final response = await http.get(
@@ -22,17 +24,18 @@ class PersonalityController extends GetxController {
       );
 
       if (response.statusCode == 200) {
-        // Replace the whole map to trigger Obx
         personality.value =
         HashMap<String, dynamic>.from(jsonDecode(response.body));
-        print(personality);
+        isLoadingPersonality.value = false;
       }
     } catch (e) {
       Get.snackbar('Error', 'Something went wrong');
+      isLoadingPersonality.value = false;
     }
   }
 
   Future<void> addPersonality() async {
+    isLoadingPersonality.value = true;
     String? accessToken = await UserInfo.getAccessToken();
     try {
       final response = await http.post(
@@ -43,10 +46,11 @@ class PersonalityController extends GetxController {
       if (response.statusCode == 200) {
         personality.value =
         HashMap<String, dynamic>.from(jsonDecode(response.body));
-        print(personality);
+        isLoadingPersonality.value = false;
       }
     } catch (e) {
       Get.snackbar('Error', 'Something went wrong');
+      isLoadingPersonality.value = false;
     }
   }
 }
