@@ -98,15 +98,13 @@ class RoadScrollView extends StatelessWidget {
                       // First Position
                       if (startLevelIndex < controller.levelList.length)
                         CustomPosition(
-                          onPress: () {
-                            controller.levelid=controller.levelList[startLevelIndex].levelId;
-                            Get.toNamed(
-                              RouteName.gameProgress,
-                              id: NavIds.home,
-
-                            );
-                            controller.fetchLevelDetails();
-                          },
+                          onPress: controller.levelList[startLevelIndex].unlocked
+                              ?() {
+                                  controller.levelid=controller.levelList[startLevelIndex].levelId;
+                                  Get.toNamed(RouteName.gameProgress, id: NavIds.home);
+                                  controller.fetchLevelDetails();
+                              }
+                              : null,
                           top: areaHeight * 0.021,
                           left: roadLeft + roadWidth + roadWidth * 0.02,
                           child: CustomObject(
