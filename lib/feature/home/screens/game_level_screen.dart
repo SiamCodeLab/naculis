@@ -73,7 +73,6 @@ class RoadScrollView extends StatelessWidget {
 
                       // Building left
                       CustomPosition(
-
                         left: roadLeft - roadWidth * 0.45,
                         bottom: areaHeight * 0.03,
                         child: Image.asset(
@@ -111,7 +110,9 @@ class RoadScrollView extends StatelessWidget {
                           top: areaHeight * 0.021,
                           left: roadLeft + roadWidth + roadWidth * 0.02,
                           child: CustomObject(
-                            image: ImageAndIconConst.streetSignColor,
+                            image: controller.levelList[startLevelIndex].unlocked
+                                ? ImageAndIconConst.streetSignColor
+                                : ImageAndIconConst.streetSign,
                             title: controller.levelList[startLevelIndex].name,
                           ),
                         ),
@@ -119,16 +120,19 @@ class RoadScrollView extends StatelessWidget {
                       // Second Position
                       if (startLevelIndex + 1 < controller.levelList.length)
                         CustomPosition(
-                          onPress: () {
-                            controller.levelid=controller.levelList[startLevelIndex+1].levelId;
-                            Get.toNamed(RouteName.gameProgress, id: NavIds.home);
-                            controller.fetchLevelDetails();
-
-                          },
+                          onPress: controller.levelList[startLevelIndex + 1].unlocked
+                              ?() {
+                                controller.levelid=controller.levelList[startLevelIndex+1].levelId;
+                                Get.toNamed(RouteName.gameProgress, id: NavIds.home);
+                                controller.fetchLevelDetails();
+                              }
+                              : null,
                           top: areaHeight * 0.31,
                           left: roadLeft - roadWidth * 0.7,
                           child: CustomObject(
-                            image: ImageAndIconConst.speaker,
+                            image: controller.levelList[startLevelIndex + 1].unlocked
+                                ? ImageAndIconConst.speaker
+                                : ImageAndIconConst.voltColerLess,
                             title:
                                 controller.levelList[startLevelIndex + 1].name,
                           ),
@@ -137,16 +141,19 @@ class RoadScrollView extends StatelessWidget {
                       // Third Position
                       if (startLevelIndex + 2 < controller.levelList.length)
                         CustomPosition(
-                          onPress: () {
-                            controller.levelid=controller.levelList[startLevelIndex+2].levelId;
-                            Get.toNamed(RouteName.gameProgress, id: NavIds.home);
-                            controller.fetchLevelDetails();
-
-                          },
+                          onPress: controller.levelList[startLevelIndex + 2].unlocked
+                              ?() {
+                                  controller.levelid=controller.levelList[startLevelIndex+2].levelId;
+                                  Get.toNamed(RouteName.gameProgress, id: NavIds.home);
+                                  controller.fetchLevelDetails();
+                              }
+                              : null,
                           bottom: areaHeight * 0.15,
                           right: roadLeft - roadWidth * 0.45,
                           child: CustomObject(
-                            image: ImageAndIconConst.streetSignColor,
+                            image: controller.levelList[startLevelIndex + 2].unlocked
+                                ? ImageAndIconConst.streetSignColor
+                                : ImageAndIconConst.streetSign,
                             title:
                                 controller.levelList[startLevelIndex + 2].name,
                           ),
