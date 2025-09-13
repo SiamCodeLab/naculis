@@ -22,7 +22,7 @@ class _QuizScreenState extends State<QuizScreen> {
   final answecontroller = Get.put(AnswerController(), permanent: true);
   final UserController userController = Get.find();
   RxInt index = 0.obs;
-  final controller = Get.find<LevelsController>();
+  final controller = Get.put(LevelsController());
 
   void _onSubmit() async {
     final blocks = controller.levelDetails['blocks'] as List? ?? [];
@@ -63,27 +63,26 @@ class _QuizScreenState extends State<QuizScreen> {
 
   void _onSpeakTap() async {
     if (answecontroller.isRecording.value) {
-      await answecontroller.stopRecording();
+      await answecontroller.stopRecording(); // this now keeps filePath valid until sent
 
-      // Move to next question
-      final blocks = controller.levelDetails['blocks'] as List? ?? [];
-      if (blocks.isNotEmpty) {
-        final groups = blocks[controller.index]['groups'] as List? ?? [];
-        if (groups.isNotEmpty) {
-          final lessons = groups[controller.qIndex]['lessons'] as List? ?? [];
-
-          if (index.value < lessons.length - 1) {
-            index.value++;
-          } else {
-            Get.toNamed(RouteName.quizResult, id: NavIds.home);
-          }
-        }
+      // Move to next question automatically after sending voice
+      final lessons = controller.levelDetails['blocks'][controller.index]['groups'][controller.qIndex]['lessons'] as List? ?? [];
+      if (index.value < lessons.length - 1) {
+        index.value++;
+      } else {
+        Get.toNamed(RouteName.quizResult, id: NavIds.home);
       }
+
+      // Refresh hearts
+      userController.fetchUserData();
+
     } else {
       await answecontroller.startRecording();
       Get.snackbar("Recording Started", "Speak now...");
     }
   }
+
+
 
   void _onTypeTap() {
     answecontroller.filePath = null; // reset audio if typing

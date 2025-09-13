@@ -1,7 +1,4 @@
-
-
 import 'package:flutter/material.dart';
-
 
 class QuestionCard extends StatelessWidget {
   final String question;
@@ -51,7 +48,7 @@ class QuestionCard extends StatelessWidget {
                 child: GestureDetector(
                   onTap: onTypeTap,
                   child: Container(
-                    height: 40,
+                    height: 60,
                     decoration: const BoxDecoration(
                       color: Color(0xFFFF6F00),
                       borderRadius: BorderRadius.only(
@@ -78,7 +75,7 @@ class QuestionCard extends StatelessWidget {
                 child: GestureDetector(
                   onTap: onSpeakTap,
                   child: Container(
-                    height: 40,
+                    height: 60,
                     decoration: const BoxDecoration(
                       color: Color(0xFF444444),
                       borderRadius: BorderRadius.only(
@@ -131,7 +128,7 @@ class QuestionCard extends StatelessWidget {
               ),
               child: Text(
                 buttonText,
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: const TextStyle(color: Colors.white, fontSize: 18),
               ),
             ),
           )

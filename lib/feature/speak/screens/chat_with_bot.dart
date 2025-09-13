@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../widgets/custom_appbar.dart';
@@ -24,8 +23,7 @@ class ChatWithBotScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-      ),
+      appBar: CustomAppBar(),
       body: Column(
         children: [
           Expanded(
@@ -35,10 +33,21 @@ class ChatWithBotScreen extends StatelessWidget {
               return ListView.builder(
                 controller: _scrollController,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                itemCount: controller.messages.length,
+                itemCount: controller.messages.length + (controller.isLoading.value ? 1 : 0),
                 itemBuilder: (_, index) {
+                  // If we're at the extra "last item" and bot is loading → show typing
+                  if (index == controller.messages.length && controller.isLoading.value) {
+                    return const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: TypingIndicator(),
+                    );
+                  }
+
                   final msg = controller.messages[index];
-                  final isError = msg['message'].toString().toLowerCase().startsWith("error") ||
+                  final isError = msg['message']
+                      .toString()
+                      .toLowerCase()
+                      .startsWith("error") ||
                       msg['message'].toString().toLowerCase().contains("failed");
 
                   if (msg['isVoice'] == true) {
@@ -58,38 +67,39 @@ class ChatWithBotScreen extends StatelessWidget {
             }),
           ),
 
-          /// Typing indicator (loading state)
-          Obx(() {
-            if (controller.isRecording.value) {
-              return const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  "🎙️ Listening...",
-                  style: TextStyle(color: Colors.red, fontStyle: FontStyle.italic),
-                ),
-              );
-            }
-            return const SizedBox.shrink();
-          }),
-
-          /// Mic button
+          /// Mic button with continuous pulsing
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Obx(() => GestureDetector(
-              onLongPress: controller.startRecording,
-              onLongPressUp: controller.stopRecording,
-              child: CircleAvatar(
-                radius: 32,
-                backgroundColor: controller.isRecording.value
-                    ? Colors.red
-                    : Theme.of(context).colorScheme.primary,
-                child: Icon(
-                  controller.isRecording.value ? Icons.stop : Icons.mic,
-                  size: 30,
-                  color: Colors.white,
+            child: Obx(() {
+              final isRecording = controller.isRecording.value;
+
+              return GestureDetector(
+                onLongPress: controller.startRecording,
+                onLongPressUp: controller.stopRecording,
+                child: SizedBox(
+                  width: 100,
+                  height: 100,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      if (isRecording)    PulsingCircle(key: ValueKey(isRecording)), // force rebuild
+
+                      CircleAvatar(
+                        radius: 32,
+                        backgroundColor: isRecording
+                            ? Colors.red
+                            : Theme.of(context).colorScheme.primary,
+                        child: Icon(
+                          isRecording ? Icons.stop : Icons.mic,
+                          size: 30,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            )),
+              );
+            }),
           ),
         ],
       ),
@@ -180,6 +190,113 @@ class VoiceMessageBubble extends StatelessWidget {
               Text('Voice Message', style: TextStyle(color: textColor)),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ------------------- TYPING INDICATOR -------------------
+class TypingIndicator extends StatefulWidget {
+  const TypingIndicator({super.key});
+
+  @override
+  State<TypingIndicator> createState() => _TypingIndicatorState();
+}
+
+class _TypingIndicatorState extends State<TypingIndicator>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<int> _dotCount;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
+
+    _dotCount = StepTween(begin: 0, end: 10).animate(_controller);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _dotCount,
+      builder: (context, child) {
+        final dots = '.' * _dotCount.value;
+        return Align(
+          alignment: Alignment.centerLeft, // align like bot messages
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Text(
+              'Typing $dots',
+              style: const TextStyle(
+                fontStyle: FontStyle.italic,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ------------------- PULSING CIRCLE -------------------
+class PulsingCircle extends StatefulWidget {
+  const PulsingCircle({super.key});
+
+  @override
+  State<PulsingCircle> createState() => _PulsingCircleState();
+}
+
+class _PulsingCircleState extends State<PulsingCircle>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..repeat(reverse: true);
+
+    _animation = Tween<double>(begin: 0.8, end: 2.6).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) => Container(
+        width: 64 * _animation.value,
+        height: 64 * _animation.value,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.red.withOpacity(0.2),
         ),
       ),
     );

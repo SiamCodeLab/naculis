@@ -92,20 +92,8 @@ class AnswerController extends GetxController {
 
     final file = File(filePath!);
 
-    // Ensure minimum file length
-    int retries = 0;
-    while (!await file.exists() || await file.length() < 5000) {
-      await Future.delayed(const Duration(milliseconds: 100));
-      retries++;
-      if (retries > 30) break;
-    }
-
     if (!await file.exists() || await file.length() < 5000) {
-      messages.add({
-        'message': 'Recording too short. Please speak louder or longer.',
-        'isSender': false,
-        'isVoice': false,
-      });
+      Get.snackbar('Recording too short', 'Please speak louder or longer.');
       return;
     }
 
@@ -116,18 +104,11 @@ class AnswerController extends GetxController {
       'path': file.path,
     });
 
-    try {
-      await sendVoice(file);
-    } catch (e) {
-      messages.add({
-        'message': 'Failed to send voice: $e',
-        'isSender': false,
-        'isVoice': false,
-      });
-    }
-
+    // Only clear filePath **after** sending voice
+    await sendVoice(file);
     filePath = null;
   }
+
 
   Future<String?> convertToMp3(String aacPath) async {
     final mp3Path = aacPath.replaceAll('.aac', '.mp3');
@@ -203,17 +184,18 @@ class AnswerController extends GetxController {
   }
 
   Future<void> sendVoice(File file) async {
-    String? mp3Path = await convertToMp3(file.path);
-    if (mp3Path == null || !await File(mp3Path).exists()) {
-      messages.add({
-        'message': 'Failed to convert audio to MP3',
-        'isSender': false,
-        'isVoice': false,
-      });
-      return;
-    }
-
+    isLoading.value = true; // start loading
     try {
+      String? mp3Path = await convertToMp3(file.path);
+      if (mp3Path == null || !await File(mp3Path).exists()) {
+        messages.add({
+          'message': 'Failed to convert audio to MP3',
+          'isSender': false,
+          'isVoice': false,
+        });
+        return;
+      }
+
       String? token = await UserInfo.getAccessToken();
       var request = http.MultipartRequest('POST', Uri.parse(baseUrl));
       request.headers['Authorization'] = 'Bearer $token';
@@ -233,10 +215,7 @@ class AnswerController extends GetxController {
       final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200) {
-        final responseBodyString = response.body;
-        print("Full voice response: $responseBodyString");
-
-        final responseBody = jsonDecode(responseBodyString);
+        final responseBody = jsonDecode(response.body);
 
         bool isCorrect =
             responseBody['submitted_answer']?['is_correct'] ?? false;
@@ -271,8 +250,11 @@ class AnswerController extends GetxController {
         'isSender': false,
         'isVoice': false,
       });
+    } finally {
+      isLoading.value = false; // stop loading
     }
   }
+
 
   /// ✅ Fixed submitAnswer: text OR voice OR both
   Future<void> submitAnswer() async {

@@ -82,7 +82,7 @@ class ChatController extends GetxController {
       final file = File(filePath!);
       if (!await file.exists() || await file.length() < 1000) {
         Get.snackbar("Too Short", "Please speak louder or longer.",
-            snackPosition: SnackPosition.BOTTOM);
+            snackPosition: SnackPosition.TOP);
         return;
       }
 

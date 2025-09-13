@@ -126,7 +126,7 @@ class ShopScreen2 extends StatelessWidget {
                       ).textTheme.labelMedium?.copyWith(color: Colors.black),
                       controller: controller.amountController,
                       decoration: InputDecoration(
-                        hintText: 'Enter amount in gems minimum 1000',
+                        hintText: 'minimum 1000 gems',
                         hintStyle: const TextStyle(
                           color: Color(0xFF999999),
                           fontSize: 15,
