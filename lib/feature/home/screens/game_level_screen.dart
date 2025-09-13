@@ -73,7 +73,6 @@ class RoadScrollView extends StatelessWidget {
 
                       // Building left
                       CustomPosition(
-
                         left: roadLeft - roadWidth * 0.45,
                         bottom: areaHeight * 0.03,
                         child: Image.asset(
