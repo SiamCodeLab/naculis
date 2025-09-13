@@ -165,9 +165,18 @@ import 'package:get/get.dart';
 import '../../widgets/custom_appbar.dart';
 import 'chat_controller.dart';
 
-class ChatWithBotScreen extends StatelessWidget {
+class ChatWithBotScreen extends StatefulWidget {
   ChatWithBotScreen({super.key});
+
+
+  @override
+  State<ChatWithBotScreen> createState() => _ChatWithBotScreenState();
+}
+
+class _ChatWithBotScreenState extends State<ChatWithBotScreen> {
   final ChatController controller = Get.put(ChatController(), permanent: true);
+
+
   final ScrollController _scrollController = ScrollController();
 
   void _scrollToBottom() {
@@ -183,7 +192,16 @@ class ChatWithBotScreen extends StatelessWidget {
   }
 
   @override
+  void initState() {
+    super.initState();
+    if (controller.conversationId != null) {
+      controller.loadConversationHistory(controller.conversationId!);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: CustomAppBar(
       ),

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:naculis/feature/home/controller/home_controller.dart';
 import 'package:naculis/feature/quest/navigator/quest_navigator.dart';
 import 'package:naculis/feature/shop/shop_navigator/shop_navigator.dart';
+import 'package:naculis/feature/speak/screens/chat_controller.dart';
 import 'package:naculis/feature/speak/screens/chat_with_bot.dart';
 import 'package:naculis/feature/user_profile/navigator/profile_navigator.dart';
 import 'package:naculis/feature/widgets/custom_nav_bar.dart';
@@ -20,11 +21,13 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   final controller = Get.put(LevelsController());
+  final ChatController chatController = Get.put(ChatController(), permanent: true);
 
   @override
   void initState() {
     super.initState();
     controller.levelList();
+    chatController.loadConversationHistory(3);
   }
 
   final List<GlobalKey<NavigatorState>> _navigatorKeys = List.generate(
