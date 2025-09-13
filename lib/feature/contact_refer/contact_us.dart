@@ -11,6 +11,9 @@ class ContactUs extends GetView<ContactUsController> {
 
   @override
   Widget build(BuildContext context) {
+
+    final controller = Get.put(ContactUsController());
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: ProfileAppBar(

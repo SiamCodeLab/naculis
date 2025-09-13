@@ -9,6 +9,7 @@ import 'package:naculis/feature/user_profile/navigator/profile_navigator.dart';
 import 'package:naculis/feature/widgets/custom_nav_bar.dart';
 
 import 'home/navigator/home_navigator.dart';
+import 'leader_board/controller/leaderboard_controller.dart';
 import 'leader_board/screens/leader_board_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -22,12 +23,14 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   final controller = Get.put(LevelsController());
   final ChatController chatController = Get.put(ChatController(), permanent: true);
+  final LeaderboardController leaderboardController = Get.put(LeaderboardController(), permanent: true);
 
   @override
   void initState() {
     super.initState();
     controller.levelList();
     chatController.loadConversationHistory(3);
+    leaderboardController.fetchGems();
   }
 
   final List<GlobalKey<NavigatorState>> _navigatorKeys = List.generate(

@@ -17,10 +17,7 @@ class _LeaderBoardScreenState extends State<LeaderBoardScreen> {
   int _selectedIndex = 0; // ✅ Default select Gems
 
   // Instantiate the controller
-  final LeaderboardController leaderboardController = Get.put(
-    LeaderboardController(),
-    permanent: true,
-  );
+  final LeaderboardController leaderboardController = Get.put(LeaderboardController(), permanent: true);
 
   @override
   void initState() {
