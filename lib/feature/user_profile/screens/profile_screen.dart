@@ -45,7 +45,7 @@ class ProfileScreen extends StatelessWidget {
                       radius: 60,
                       backgroundImage: user.profilePicture != null && user.profilePicture!.isNotEmpty
                           ? NetworkImage(user.profilePicture!)
-                          : const NetworkImage('https://i.pravatar.cc/150?img=3'),
+                          : const NetworkImage('https://avatar.iran.liara.run/public/17'),
                     ),
                   ),
                 ],

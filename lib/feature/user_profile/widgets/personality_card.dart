@@ -107,10 +107,12 @@ class PersonalityCard extends StatelessWidget {
                             height: 180,
                             child: SingleChildScrollView(
                               child: Obx(
-                                    () =>  Text(
-                                  controller.personality.value['summary']??"Generating.......",
-                                  style: const TextStyle(fontSize: 14, color: Colors.black),
-                                ),
+                                    () =>  controller.isLoadingPersonality.value
+                                        ? Center(child: CircularProgressIndicator())
+                                        : Text(
+                                      controller.personality.value['summary']??"Generating.......",
+                                      style: const TextStyle(fontSize: 14, color: Colors.black),
+                                    )
                               ),
                             ),
                           ),
