@@ -119,6 +119,7 @@ class ChatController extends GetxController {
 
   // -------------------- API Calls --------------------
   Future<void> sendVoice(File file) async {
+    isLoading.value = true;
     try {
       String? mp3Path = await convertToMp3(file.path);
 
@@ -147,6 +148,7 @@ class ChatController extends GetxController {
       final body = jsonDecode(response.body);
 
       if (response.statusCode == 200 && body['success'] == true) {
+        isLoading.value = false;
         // ✅ Save conversation_id
         conversationId = body['conversation_id'];
 
@@ -156,10 +158,12 @@ class ChatController extends GetxController {
           'isVoice': false,
         });
       } else {
+        isLoading.value = false;
         Get.snackbar("Server Error", "Code ${response.statusCode}",
             snackPosition: SnackPosition.BOTTOM);
       }
     } catch (e) {
+      isLoading.value = false;
       Get.snackbar("Send Error", "$e", snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;

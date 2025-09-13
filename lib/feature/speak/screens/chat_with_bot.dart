@@ -214,8 +214,30 @@ class _ChatWithBotScreenState extends State<ChatWithBotScreen> {
               return ListView.builder(
                 controller: _scrollController,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                itemCount: controller.messages.length,
+                itemCount: controller.messages.length + (controller.isLoading.value ? 1 : 0),
                 itemBuilder: (_, index) {
+                  // If last item is loading, show typing indicator
+                  if (controller.isLoading.value && index == controller.messages.length) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: const [
+                          SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            "Bot is typing...",
+                            style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
                   final msg = controller.messages[index];
                   final isError = msg['message'].toString().toLowerCase().startsWith("error") ||
                       msg['message'].toString().toLowerCase().contains("failed");
@@ -236,6 +258,7 @@ class _ChatWithBotScreenState extends State<ChatWithBotScreen> {
               );
             }),
           ),
+
 
           /// Typing indicator (loading state)
           Obx(() {
