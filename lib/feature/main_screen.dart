@@ -31,6 +31,7 @@ class _MainScreenState extends State<MainScreen> {
     controller.levelList();
     chatController.loadConversationHistory(3);
     leaderboardController.fetchGems();
+    leaderboardController.leaderboard();
   }
 
   final List<GlobalKey<NavigatorState>> _navigatorKeys = List.generate(
