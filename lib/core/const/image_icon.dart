@@ -40,6 +40,7 @@ class ImageAndIconConst {
   static const speaker='assets/images/home/speaker_icon-color 3.png';
   static const streetSign='assets/images/home/street_sign 6.png';
   static const streetSignColor='assets/images/home/street_sign-color 3.png';
+  static const voltColerLess='assets/images/home/volt.png';
   static const trophy ='assets/images/quiz/trophy.png';
   static const chatbot = 'assets/images/chatbot.png';
 

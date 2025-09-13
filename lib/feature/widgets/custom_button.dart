@@ -89,19 +89,19 @@ class QuestionCard extends StatelessWidget {
             question,
             style: const TextStyle(
               color: Colors.black,
-              fontSize: 16,
+              fontSize: 20,
               fontWeight: FontWeight.w600,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 24),
           CustomTypeSpeakBar(
             onTypeTap: onTypeTap,
             onSpeakTap: onSpeakTap,
             typeIcon: typeIcon,
             speakIcon: speakIcon,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 14),
           TextField(
             controller: controller,
             style: Theme.of(
@@ -109,7 +109,7 @@ class QuestionCard extends StatelessWidget {
             ).textTheme.titleSmall?.copyWith(color: Colors.black),
             decoration: InputDecoration(
               hintText: 'Type Your Answer',
-              hintStyle: const TextStyle(fontSize: 15),
+              hintStyle: const TextStyle(fontSize: 18),
               filled: true,
               fillColor: const Color(0xFFE7DA92),
               border: OutlineInputBorder(
@@ -126,7 +126,7 @@ class QuestionCard extends StatelessWidget {
               onPressed: onSubmit,
               child: Text(
                 buttonText,
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: TextStyle(color: Colors.white, fontSize: 18),
               ),
             ),
           ),
@@ -179,7 +179,7 @@ class CustomTypeSpeakBar extends StatelessWidget {
                   const SizedBox(width: 10),
                   const Text(
                     'Type',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                    style: TextStyle(color: Colors.white, fontSize: 18),
                   ),
                 ],
               ),
@@ -202,7 +202,7 @@ class CustomTypeSpeakBar extends StatelessWidget {
                   const SizedBox(width: 10),
                   const Text(
                     'Speak',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                    style: TextStyle(color: Colors.white, fontSize: 18),
                   ),
                 ],
               ),
