@@ -17,12 +17,13 @@ import '../../home/controller/home_controller.dart';
 class AnswerController extends GetxController {
   final LevelsController lcontroller = Get.find();
   int lessonId = 0;
+  RxBool isAnswered = false.obs;
 
   // Text input
   final TextEditingController controller = TextEditingController();
 
   // Loading & response
-  RxBool isLoading = false.obs;
+  RxBool isLoading = false.obs; // single truth for network/IO
   var responseMessage = ''.obs;
   Rx<HashMap<String, dynamic>> aResponse = HashMap<String, dynamic>().obs;
 
@@ -40,7 +41,9 @@ class AnswerController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    lcontroller.fetchLevelDetails();
+    try {
+      lcontroller.fetchLevelDetails();
+    } catch (_) {}
     initRecorder();
     player.openPlayer();
   }
@@ -55,7 +58,7 @@ class AnswerController extends GetxController {
   Future<void> initRecorder() async {
     try {
       await recorder.openRecorder();
-      recorder.setSubscriptionDuration(Duration(milliseconds: 50));
+      recorder.setSubscriptionDuration(const Duration(milliseconds: 50));
     } catch (e) {
       messages.add({
         'message': 'Error initializing recorder: $e',
@@ -71,62 +74,101 @@ class AnswerController extends GetxController {
   }
 
   Future<void> startRecording() async {
-    if (!await requestPermissions()) return;
+    if (!await requestPermissions()) {
+      Get.snackbar('Permission denied', 'Microphone permission is required.');
+      return;
+    }
     if (recorder.isRecording) return;
 
     final dir = await getTemporaryDirectory();
+    // We will still call stopRecorder() to get final path; pre-assigning safe path for some platforms
     filePath = '${dir.path}/voice_message.aac';
 
-    await recorder.startRecorder(toFile: filePath);
-    isRecording.value = true;
-    print("Recording started: $filePath");
+    try {
+      await recorder.startRecorder(toFile: filePath);
+      isRecording.value = true;
+      print("Recording started: $filePath");
+    } catch (e) {
+      isRecording.value = false;
+      messages.add({
+        'message': 'Failed to start recording: $e',
+        'isSender': false,
+        'isVoice': false,
+      });
+    }
   }
 
-  Future<void> stopRecording() async {
-    if (!recorder.isRecording) return;
+  /// Stops the recorder, validates file, optionally auto-submits the audio.
+  /// Returns true if recording + optional submission succeeded.
+  Future<bool> stopRecording({bool autoSubmit = false}) async {
+    if (!recorder.isRecording) return false;
 
-    await recorder.stopRecorder();
-    isRecording.value = false;
-
-    if (filePath == null) return;
-
-    final file = File(filePath!);
-
-    // Ensure minimum file length
-    int retries = 0;
-    while (!await file.exists() || await file.length() < 5000) {
-      await Future.delayed(const Duration(milliseconds: 100));
-      retries++;
-      if (retries > 30) break;
-    }
-
-    if (!await file.exists() || await file.length() < 5000) {
-      messages.add({
-        'message': 'Recording too short. Please speak louder or longer.',
-        'isSender': false,
-        'isVoice': false,
-      });
-      return;
-    }
-
-    messages.add({
-      'message': '[Voice Message Ready]',
-      'isSender': true,
-      'isVoice': true,
-      'path': file.path,
-    });
-
+    isLoading.value = true;
     try {
-      await sendVoice(file);
+      // stopRecorder returns final path in many flutter_sound versions
+      final maybePath = await recorder.stopRecorder();
+      isRecording.value = false;
+
+      // Prefer returned path, fallback to previously assigned filePath
+      final actualPath = maybePath ?? filePath;
+      if (actualPath == null) {
+        messages.add({
+          'message': 'No recorded file was produced.',
+          'isSender': false,
+          'isVoice': false,
+        });
+        isLoading.value = false;
+        return false;
+      }
+
+      final file = File(actualPath);
+
+      // Wait a bit for FS to settle and check size
+      int retries = 0;
+      while (!await file.exists() || await file.length() < 5000) {
+        await Future.delayed(const Duration(milliseconds: 100));
+        retries++;
+        if (retries > 30) break;
+      }
+
+      if (!await file.exists() || await file.length() < 5000) {
+        messages.add({
+          'message': 'Recording too short. Please speak louder or longer.',
+          'isSender': false,
+          'isVoice': false,
+        });
+        filePath = null;
+        isLoading.value = false;
+        return false;
+      }
+
+      // keep path for UI preview / possible manual submit if autoSubmit=false
+      filePath = actualPath;
+
+      messages.add({
+        'message': '[Voice Message Ready]',
+        'isSender': true,
+        'isVoice': true,
+        'path': file.path,
+      });
+
+      if (autoSubmit) {
+        final res = await sendVoice(file);
+        isLoading.value = false;
+        return res != null;
+      } else {
+        isLoading.value = false;
+        return true;
+      }
     } catch (e) {
       messages.add({
-        'message': 'Failed to send voice: $e',
+        'message': 'Failed to stop recording: $e',
         'isSender': false,
         'isVoice': false,
       });
+      isLoading.value = false;
+      return false;
     }
-
-    filePath = null;
   }
 
   Future<String?> convertToMp3(String aacPath) async {
@@ -145,10 +187,12 @@ class AnswerController extends GetxController {
     return null;
   }
 
-  Future<void> submitLesson({
+  /// Submits a text answer. Returns response body map on success, null on failure.
+  Future<Map<String, dynamic>?> submitLesson({
     required int lessonId,
     required String answer,
   }) async {
+    if (isLoading.value) return null;
     isLoading.value = true;
     try {
       String? token = await UserInfo.getAccessToken();
@@ -162,18 +206,17 @@ class AnswerController extends GetxController {
       request.body = body;
       request.headers.addAll(headers);
 
-      http.StreamedResponse response = await request.send();
+      http.StreamedResponse streamedResponse = await request.send();
 
-      if (response.statusCode == 200) {
-        var responseBodyString = await response.stream.bytesToString();
-        print("Full text response: $responseBodyString");
+      final responseBodyString = await streamedResponse.stream.bytesToString();
+      print("Full text response: $responseBodyString");
 
-        var responseBody = jsonDecode(responseBodyString);
+      if (streamedResponse.statusCode == 200) {
+        final responseBody = jsonDecode(responseBodyString) as Map<String, dynamic>;
         responseMessage.value = responseBodyString;
         aResponse.value.addAll(responseBody);
-
-        bool isCorrect =
-            responseBody['submitted_answer']?['is_correct'] ?? false;
+        // show snackbar based on server verdict
+        bool isCorrect = responseBody['submitted_answer']?['is_correct'] ?? false;
         String correctText = isCorrect ? "Correct" : "Wrong";
 
         Get.snackbar(
@@ -186,37 +229,38 @@ class AnswerController extends GetxController {
           colorText: Colors.white,
         );
 
-        messages.add({
-          'message': responseBody['response'] ?? 'Answer submitted',
-          'isSender': false,
-          'isVoice': false,
-          'isCorrect': isCorrect,
-        });
+        return responseBody;
       } else {
-        responseMessage.value = 'Error: ${response.reasonPhrase}';
+        print("Text submission failed: ${streamedResponse.reasonPhrase}");
+        Get.snackbar("Submission failed", "Server returned ${streamedResponse.statusCode}");
+        return null;
       }
     } catch (e) {
-      responseMessage.value = 'Exception: $e';
+      print("Exception during text submission: $e");
+      Get.snackbar("Error", "Failed to submit text answer.");
+      return null;
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> sendVoice(File file) async {
+  /// Sends voice file. Returns response body map on success, null on failure.
+  Future<Map<String, dynamic>?> sendVoice(File file) async {
+    if (isLoading.value) return null;
+    isLoading.value = true;
+
     String? mp3Path = await convertToMp3(file.path);
     if (mp3Path == null || !await File(mp3Path).exists()) {
-      messages.add({
-        'message': 'Failed to convert audio to MP3',
-        'isSender': false,
-        'isVoice': false,
-      });
-      return;
+      print("MP3 conversion failed");
+      Get.snackbar("Error", "Failed to convert audio to mp3.");
+      isLoading.value = false;
+      return null;
     }
 
     try {
       String? token = await UserInfo.getAccessToken();
       var request = http.MultipartRequest('POST', Uri.parse(baseUrl));
-      request.headers['Authorization'] = 'Bearer $token';
+      if (token != null) request.headers['Authorization'] = 'Bearer $token';
 
       request.files.add(
         await http.MultipartFile.fromPath(
@@ -236,10 +280,9 @@ class AnswerController extends GetxController {
         final responseBodyString = response.body;
         print("Full voice response: $responseBodyString");
 
-        final responseBody = jsonDecode(responseBodyString);
+        final responseBody = jsonDecode(responseBodyString) as Map<String, dynamic>;
 
-        bool isCorrect =
-            responseBody['submitted_answer']?['is_correct'] ?? false;
+        bool isCorrect = responseBody['submitted_answer']?['is_correct'] ?? false;
         String correctText = isCorrect ? "Correct" : "Wrong";
 
         Get.snackbar(
@@ -252,48 +295,55 @@ class AnswerController extends GetxController {
           colorText: Colors.white,
         );
 
-        messages.add({
-          'message': responseBody['response'] ?? 'Voice submitted',
-          'isSender': false,
-          'isVoice': false,
-          'isCorrect': isCorrect,
-        });
+        // Clear the filePath after successful send
+        try {
+          await File(mp3Path).delete();
+        } catch (_) {}
+        filePath = null;
+
+        return responseBody;
       } else {
-        messages.add({
-          'message': 'Error: ${response.statusCode}',
-          'isSender': false,
-          'isVoice': false,
-        });
+        print("Voice submission failed: ${response.reasonPhrase}");
+        Get.snackbar("Submission failed", "Server returned ${response.statusCode}");
+        return null;
       }
     } catch (e) {
-      messages.add({
-        'message': 'Failed to send voice: $e',
-        'isSender': false,
-        'isVoice': false,
-      });
+      print("Exception during voice submission: $e");
+      Get.snackbar("Error", "Failed to submit voice answer.");
+      return null;
+    } finally {
+      isLoading.value = false;
     }
   }
 
-  /// ✅ Fixed submitAnswer: text OR voice OR both
-  Future<void> submitAnswer() async {
+  /// Convenience method used by UI when user taps manual submit button.
+  /// Returns true if either text or audio submission succeeded.
+  Future<bool> submitCurrentAnswer() async {
+    if (isLoading.value) return false;
+
     final hasText = controller.text.trim().isNotEmpty;
     final hasAudio = filePath != null;
 
     if (!hasText && !hasAudio) {
       Get.snackbar("No input", "Please provide text or audio.");
-      return;
+      return false;
     }
 
+    bool anySuccess = false;
+
     if (hasText) {
-      await submitLesson(lessonId: lessonId, answer: controller.text.trim());
+      final resp = await submitLesson(lessonId: lessonId, answer: controller.text.trim());
+      if (resp != null) anySuccess = true;
     }
 
     if (hasAudio) {
       final file = File(filePath!);
-      await sendVoice(file);
+      final resp = await sendVoice(file);
+      if (resp != null) anySuccess = true;
     }
 
     controller.clear();
     filePath = null;
+    return anySuccess;
   }
 }
