@@ -188,10 +188,7 @@ class AnswerController extends GetxController {
   }
 
   /// Submits a text answer. Returns response body map on success, null on failure.
-  Future<Map<String, dynamic>?> submitLesson({
-    required int lessonId,
-    required String answer,
-  }) async {
+  Future<Map<String, dynamic>?> submitLesson({required int lessonId, required String answer}) async {
     if (isLoading.value) return null;
     isLoading.value = true;
     try {
@@ -209,10 +206,54 @@ class AnswerController extends GetxController {
       http.StreamedResponse streamedResponse = await request.send();
 
       final responseBodyString = await streamedResponse.stream.bytesToString();
-      print("Full text response: $responseBodyString");
+
+      // if (streamedResponse.statusCode == 200) {
+      //   final responseBody = jsonDecode(responseBodyString) as Map<String, dynamic>;
+      //
+      //   print("Full text response: $responseBodyString");
+      //
+      //   responseMessage.value = responseBodyString;
+      //   aResponse.value.addAll(responseBody);
+      //
+      //   bool isCorrect = responseBody['submitted_answer']?['is_correct'] ?? false;
+      //   String correctText = isCorrect ? "Correct" : "Wrong";
+      //
+      //   // If answer is wrong, show 2 suggestions from gpt_answers if available
+      //   if (!isCorrect && responseBody['gpt_answers'] is List && responseBody['gpt_answers'].length >= 2) {
+      //     final suggestions = responseBody['gpt_answers'].take(2).join('\n');
+      //     Get.snackbar(
+      //       "Your answer is",
+      //       "$correctText\nSuggestions:\n$suggestions",
+      //       snackPosition: SnackPosition.TOP,
+      //       backgroundColor: Colors.red.withOpacity(0.8),
+      //       colorText: Colors.white,
+      //     );
+      //   } else {
+      //     Get.snackbar(
+      //       "Your answer is",
+      //       correctText,
+      //       snackPosition: SnackPosition.TOP,
+      //       backgroundColor: isCorrect
+      //           ? Colors.green.withOpacity(0.8)
+      //           : Colors.red.withOpacity(0.8),
+      //       colorText: Colors.white,
+      //     );
+      //   }
+      //
+      //
+      //   bool isCorrectAns = responseBody['correct'];
+      //   print("Text answer correctness: $isCorrectAns");
+      //
+      //   isAnswered.value = isCorrectAns;
+      //
+      //   return responseBody;
+      // }
 
       if (streamedResponse.statusCode == 200) {
         final responseBody = jsonDecode(responseBodyString) as Map<String, dynamic>;
+        
+        print("Full text response: $responseBodyString");
+        
         responseMessage.value = responseBodyString;
         aResponse.value.addAll(responseBody);
         // show snackbar based on server verdict
@@ -229,10 +270,17 @@ class AnswerController extends GetxController {
           colorText: Colors.white,
         );
 
+        
+        bool isCorrectAns = responseBody['correct'];
+        print("Text answer correctness: $isCorrectAns");
+        
+        isAnswered.value = isCorrectAns;
+
         return responseBody;
       } else {
         print("Text submission failed: ${streamedResponse.reasonPhrase}");
         Get.snackbar("Submission failed", "Server returned ${streamedResponse.statusCode}");
+        isAnswered.value = false;
         return null;
       }
     } catch (e) {
@@ -332,8 +380,8 @@ class AnswerController extends GetxController {
     bool anySuccess = false;
 
     if (hasText) {
-      final resp = await submitLesson(lessonId: lessonId, answer: controller.text.trim());
-      if (resp != null) anySuccess = true;
+      await submitLesson(lessonId: lessonId, answer: controller.text.trim());
+      if (isAnswered.value == true) anySuccess = true;
     }
 
     if (hasAudio) {

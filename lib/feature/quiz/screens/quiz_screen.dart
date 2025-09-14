@@ -27,6 +27,7 @@ class _QuizScreenState extends State<QuizScreen> {
   RxInt questionIndex = 0.obs;
 
   void _advanceOrFinish(List lessons) {
+
     if (questionIndex.value < lessons.length - 1) {
       questionIndex.value++;
     } else {
@@ -62,8 +63,9 @@ class _QuizScreenState extends State<QuizScreen> {
 
     // submit and wait for server response
     final success = await answecontroller.submitCurrentAnswer();
+    
+    print("Submission success: $success");
 
-    // only advance if submission succeeded
     if (success) {
       _advanceOrFinish(lessons);
     }
