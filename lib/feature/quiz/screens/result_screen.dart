@@ -23,6 +23,8 @@ class ResultScreen extends StatelessWidget {
           final earnedXp = group['earned_xp'] ?? 0;
           final accuracy = group['accuracy_pct'] ?? 0;
           final gems = group['earned_gems'] ?? 0;
+          
+          print('ResultScreen - earnedXp: $earnedXp, accuracy: $accuracy, gems: $gems');
 
           return SingleChildScrollView(
             child: Padding(
@@ -103,7 +105,7 @@ class ResultScreen extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () {
-                            Get.toNamed(RouteName.greetingsAndIntro, id: NavIds.home);
+                            Get.offNamed(RouteName.greetingsAndIntro, id: NavIds.home);
                             Get.put(LevelsController());
                           },
                           child: Text(
