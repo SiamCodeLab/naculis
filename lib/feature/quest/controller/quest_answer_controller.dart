@@ -153,7 +153,7 @@ class AnswerController extends GetxController {
       });
 
       if (autoSubmit) {
-        final res = await sendVoice(file);
+        final res = await sendVoice(file, lessonId);
         isLoading.value = false;
         return res != null;
       } else {
@@ -279,7 +279,11 @@ class AnswerController extends GetxController {
         return responseBody;
       } else {
         print("Text submission failed: ${streamedResponse.reasonPhrase}");
-        Get.snackbar("Submission failed", "Server returned ${streamedResponse.statusCode}");
+        Get.snackbar(
+          "Submission failed",
+          (jsonDecode(responseBodyString)['message'] as String?) ?? "Server returned ${streamedResponse.statusCode}",
+        );
+        stopRecording();
         isAnswered.value = false;
         return null;
       }
@@ -293,8 +297,10 @@ class AnswerController extends GetxController {
   }
 
   /// Sends voice file. Returns response body map on success, null on failure.
-  Future<Map<String, dynamic>?> sendVoice(File file) async {
-    if (isLoading.value) return null;
+  Future<Map<String, dynamic>?> sendVoice(File file, int lessonId) async {
+
+
+    print("Preparing to send voice file: ${file.path}, lessonId: $lessonId");
     isLoading.value = true;
 
     String? mp3Path = await convertToMp3(file.path);
@@ -306,6 +312,7 @@ class AnswerController extends GetxController {
     }
 
     try {
+      print("Sending mp3 file: $mp3Path");
       String? token = await UserInfo.getAccessToken();
       var request = http.MultipartRequest('POST', Uri.parse(baseUrl));
       if (token != null) request.headers['Authorization'] = 'Bearer $token';
@@ -323,6 +330,9 @@ class AnswerController extends GetxController {
 
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
+      
+      print("Voice submission response status: ${response.statusCode}");
+      print("Voice submission response body: ${response.body}");
 
       if (response.statusCode == 200) {
         final responseBodyString = response.body;
@@ -343,6 +353,8 @@ class AnswerController extends GetxController {
           colorText: Colors.white,
         );
 
+        isAnswered.value = responseBody['correct'] ?? false;
+        print("Voice answer correctness: ${isAnswered.value}");
         // Clear the filePath after successful send
         try {
           await File(mp3Path).delete();
@@ -386,8 +398,8 @@ class AnswerController extends GetxController {
 
     if (hasAudio) {
       final file = File(filePath!);
-      final resp = await sendVoice(file);
-      if (resp != null) anySuccess = true;
+      await sendVoice(file, lessonId);
+      if (isAnswered.value == true) anySuccess = true;
     }
 
     controller.clear();

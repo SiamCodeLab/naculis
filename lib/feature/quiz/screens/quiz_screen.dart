@@ -27,7 +27,6 @@ class _QuizScreenState extends State<QuizScreen> {
   RxInt questionIndex = 0.obs;
 
   void _advanceOrFinish(List lessons) {
-
     if (questionIndex.value < lessons.length - 1) {
       questionIndex.value++;
     } else {
@@ -80,31 +79,120 @@ class _QuizScreenState extends State<QuizScreen> {
     print("Type button tapped");
   }
 
+  // Future<void> _onSpeakTap() async {
+  //   if (answecontroller.isRecording.value) {
+  //     // stop and auto-submit
+  //     final blocks = controller.levelDetails['blocks'] as List? ?? [];
+  //     final groups = (blocks.isNotEmpty) ? blocks[controller.index]['groups'] as List? ?? [] : [];
+  //     final lessons = (groups.isNotEmpty) ? groups[controller.qIndex]['lessons'] as List? ?? [] : [];
+  //
+  //     // assign lesson id before auto-submit so sendVoice includes it
+  //     if (lessons.isNotEmpty) {
+  //       answecontroller.lessonId = lessons[questionIndex.value]["lesson_id"];
+  //     }
+  //
+  //     final success = await answecontroller.stopRecording(autoSubmit: true);
+  //
+  //     if (success) {
+  //       // only advance after successful submission
+  //       if (lessons.isNotEmpty) {
+  //         _advanceOrFinish(lessons);
+  //       }
+  //       userController.fetchUserData();
+  //     } else {
+  //       // Failure already surfaced via snackbars from controller
+  //     }
+  //   } else {
+  //     // start recording
+  //     await answecontroller.startRecording();
+  //     if (answecontroller.isRecording.value) {
+  //       Get.snackbar("Recording Started", "Speak now...");
+  //     } else {
+  //       Get.snackbar("Recording Error", "Could not start recording.");
+  //     }
+  //   }
+  // }
+
+
+  // Future<void> _onSpeakTap() async {
+  //   if (answecontroller.isRecording.value) {
+  //     // stop and auto-submit
+  //     final blocks = controller.levelDetails['blocks'] as List? ?? [];
+  //     final groups = (blocks.isNotEmpty) ? blocks[controller.index]['groups'] as List? ?? [] : [];
+  //     final lessons = (groups.isNotEmpty) ? groups[controller.qIndex]['lessons'] as List? ?? [] : [];
+  //
+  //     // assign lesson id before auto-submit so sendVoice includes it
+  //     if (lessons.isNotEmpty) {
+  //       answecontroller.lessonId = lessons[questionIndex.value]["lesson_id"];
+  //     }
+  //
+  //     // Hard check: if hearts are 0 before submission, show a message and do not submit
+  //     if (userController.user.value.hearts <= 0) {
+  //       Get.snackbar('Please Refill Hearts', 'You do not have enough hearts.');
+  //       return;
+  //     }
+  //
+  //     await answecontroller.stopRecording(autoSubmit: true);
+  //     final success = await answecontroller.submitCurrentAnswer();
+  //
+  //     if (success) {
+  //       // Hard check: if hearts are 0 after submission, show a message and do not advance
+  //       if (userController.user.value.hearts <= 0) {
+  //         Get.snackbar('No Hearts Left', 'You have run out of hearts. Please refill to continue.');
+  //         return;
+  //       }
+  //       if (lessons.isNotEmpty) {
+  //         _advanceOrFinish(lessons);
+  //       }
+  //       userController.fetchUserData();
+  //     } else {
+  //
+  //     }
+  //   } else {
+  //     // start recording
+  //     await answecontroller.startRecording();
+  //     if (answecontroller.isRecording.value) {
+  //       Get.snackbar("Recording Started", "Speak now...");
+  //     } else {
+  //       Get.snackbar("Recording Error", "Could not start recording.");
+  //     }
+  //   }
+  // }
+
   Future<void> _onSpeakTap() async {
     if (answecontroller.isRecording.value) {
-      // stop and auto-submit
+      // Stop and auto-submit
       final blocks = controller.levelDetails['blocks'] as List? ?? [];
       final groups = (blocks.isNotEmpty) ? blocks[controller.index]['groups'] as List? ?? [] : [];
       final lessons = (groups.isNotEmpty) ? groups[controller.qIndex]['lessons'] as List? ?? [] : [];
 
-      // assign lesson id before auto-submit so sendVoice includes it
+      // Assign lesson id before auto-submit so sendVoice includes it
       if (lessons.isNotEmpty) {
         answecontroller.lessonId = lessons[questionIndex.value]["lesson_id"];
       }
 
-      final success = await answecontroller.stopRecording(autoSubmit: true);
+      // Hard check: if hearts are 0 before submission, show a message and do not submit
+      if (userController.user.value.hearts <= 0) {
+        Get.snackbar('Please Refill Hearts', 'You do not have enough hearts.');
+        return;
+      }
+
+      await answecontroller.stopRecording(autoSubmit: true);
+      final success = await answecontroller.submitCurrentAnswer();
 
       if (success) {
-        // only advance after successful submission
+        // Hard check: if hearts are 0 after submission, show a message and do not advance
+        if (userController.user.value.hearts <= 0) {
+          Get.snackbar('No Hearts Left', 'You have run out of hearts. Please refill to continue.');
+          return;
+        }
         if (lessons.isNotEmpty) {
           _advanceOrFinish(lessons);
         }
         userController.fetchUserData();
-      } else {
-        // Failure already surfaced via snackbars from controller
       }
     } else {
-      // start recording
+      // Start recording
       await answecontroller.startRecording();
       if (answecontroller.isRecording.value) {
         Get.snackbar("Recording Started", "Speak now...");
