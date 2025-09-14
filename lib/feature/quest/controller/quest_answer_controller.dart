@@ -153,9 +153,10 @@ class AnswerController extends GetxController {
       });
 
       if (autoSubmit) {
-        final res = await sendVoice(file, lessonId);
+        // returns true only if sendVoice found the answer correct
+        final bool res = await sendVoice(file, lessonId);
         isLoading.value = false;
-        return res != null;
+        return res;
       } else {
         isLoading.value = false;
         return true;
@@ -256,6 +257,7 @@ class AnswerController extends GetxController {
         
         responseMessage.value = responseBodyString;
         aResponse.value.addAll(responseBody);
+
         // show snackbar based on server verdict
         bool isCorrect = responseBody['submitted_answer']?['is_correct'] ?? false;
         String correctText = isCorrect ? "Correct" : "Wrong";
@@ -297,9 +299,8 @@ class AnswerController extends GetxController {
   }
 
   /// Sends voice file. Returns response body map on success, null on failure.
-  Future<Map<String, dynamic>?> sendVoice(File file, int lessonId) async {
-
-
+  /// Sends voice file and **returns true only if the server marks the answer correct**.
+  Future<bool> sendVoice(File file, int lessonId) async {
     print("Preparing to send voice file: ${file.path}, lessonId: $lessonId");
     isLoading.value = true;
 
@@ -308,7 +309,7 @@ class AnswerController extends GetxController {
       print("MP3 conversion failed");
       Get.snackbar("Error", "Failed to convert audio to mp3.");
       isLoading.value = false;
-      return null;
+      return false;
     }
 
     try {
@@ -330,19 +331,19 @@ class AnswerController extends GetxController {
 
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-      
+
       print("Voice submission response status: ${response.statusCode}");
       print("Voice submission response body: ${response.body}");
 
       if (response.statusCode == 200) {
-        final responseBodyString = response.body;
-        print("Full voice response: $responseBodyString");
+        final Map<String, dynamic> responseBody = jsonDecode(response.body) as Map<String, dynamic>;
 
-        final responseBody = jsonDecode(responseBodyString) as Map<String, dynamic>;
+        // Support both possible keys (some responses used 'correct', others used submitted_answer.is_correct)
+        final bool isCorrect = (responseBody['correct']
+            ?? responseBody['submitted_answer']?['is_correct']
+            ?? false) as bool;
 
-        bool isCorrect = responseBody['submitted_answer']?['is_correct'] ?? false;
-        String correctText = isCorrect ? "Correct" : "Wrong";
-
+        final String correctText = isCorrect ? "Correct" : "Wrong";
         Get.snackbar(
           "Your answer is",
           correctText,
@@ -353,28 +354,38 @@ class AnswerController extends GetxController {
           colorText: Colors.white,
         );
 
-        isAnswered.value = responseBody['correct'] ?? false;
-        print("Voice answer correctness: ${isAnswered.value}");
-        // Clear the filePath after successful send
+        // Set flag for other flows that read it
+        isAnswered.value = isCorrect;
+
+        if (!isCorrect) {
+          messages.add({
+            'message': 'Voice answer was incorrect. Please try again.',
+            'isSender': false,
+            'isVoice': false,
+          });
+        }
+
+        // cleanup mp3
         try {
           await File(mp3Path).delete();
         } catch (_) {}
-        filePath = null;
 
-        return responseBody;
+        filePath = null;
+        return isCorrect;
       } else {
         print("Voice submission failed: ${response.reasonPhrase}");
         Get.snackbar("Submission failed", "Server returned ${response.statusCode}");
-        return null;
+        return false;
       }
     } catch (e) {
       print("Exception during voice submission: $e");
       Get.snackbar("Error", "Failed to submit voice answer.");
-      return null;
+      return false;
     } finally {
       isLoading.value = false;
     }
   }
+
 
   /// Convenience method used by UI when user taps manual submit button.
   /// Returns true if either text or audio submission succeeded.
@@ -399,6 +410,7 @@ class AnswerController extends GetxController {
     if (hasAudio) {
       final file = File(filePath!);
       await sendVoice(file, lessonId);
+      print("After voice send, isAnswered: ${isAnswered.value}");
       if (isAnswered.value == true) anySuccess = true;
     }
 

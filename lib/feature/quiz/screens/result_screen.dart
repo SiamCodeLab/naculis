@@ -13,159 +13,115 @@ class ResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AnswerController controller = Get.find();
-
-    // final blockcontroller = Get.find<LevelsController>();
-    print(controller.aResponse.value['group_congrats']['earned_xp']);
+    final AnswerController controller = Get.put(AnswerController());
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Image.asset(ImageAndIconConst.trophy),
+        child: Obx(() {
+          // Handle null / empty response safely
+          final group = controller.aResponse.value['group_congrats'] ?? {};
+          final earnedXp = group['earned_xp'] ?? 0;
+          final accuracy = group['accuracy_pct'] ?? 0;
+          final gems = group['earned_gems'] ?? 0;
 
-                const SizedBox(height: 20),
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Image.asset(ImageAndIconConst.trophy),
 
-                // Top Cards Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Obx(
-                      () => _infoCard(
+                  const SizedBox(height: 20),
+
+                  // Top Cards Row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _infoCard(
                         title: AppStringEn.totalXP.tr,
                         icon: Icons.flash_on,
                         iconColor: Colors.orange,
-                        value: controller
-                            .aResponse
-                            .value['group_congrats']['earned_xp']
-                            .toString(),
+                        value: earnedXp.toString(),
                         valueColor: Colors.orange,
                         iconInsideColor: Colors.blue,
                       ),
-                    ),
-                    Obx(
-                      () => _infoCard(
+                      _infoCard(
                         title: AppStringEn.amazing.tr,
-                        value:
-                            '${controller.aResponse.value['group_congrats']['accuracy_pct'].toString()}%',
+                        value: '$accuracy%',
                         valueColor: Colors.orange,
                       ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Earned Gems Title
+                  Text(
+                    AppStringEn.earnedGems.tr,
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : Colors.black,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
-                ),
-
-                const SizedBox(height: 24),
-
-                // Earned Gems Title
-                Text(
-                  AppStringEn.earnedGems.tr,
-                  style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
                   ),
-                ),
 
-                const SizedBox(height: 10),
+                  const SizedBox(height: 10),
 
-                // Gems Card
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 10,
-                    horizontal: 20,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.diamond, size: 40, color: Colors.orange),
-                      const SizedBox(width: 4),
-                      Obx(
-                        () => Text(
-                          controller.aResponse.value['group_congrats']['earned_gems'].toString(),
-                          // Consider making this dynamic/localized
+                  // Gems Card
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 10,
+                      horizontal: 20,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.diamond, size: 40, color: Colors.orange),
+                        const SizedBox(width: 4),
+                        Text(
+                          gems.toString(),
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
                             color: Colors.orange[800],
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 30),
+                  const SizedBox(height: 30),
 
-                // Bottom Buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-
-                    const SizedBox(width: 30),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Get.toNamed(RouteName.greetingsAndIntro, id: NavIds.home);
-                          Get.put(LevelsController());
-                        },
-                        child: Text(
-                          AppStringEn.takeNewQuiz.tr,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
+                  // Bottom Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const SizedBox(width: 30),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Get.toNamed(RouteName.greetingsAndIntro, id: NavIds.home);
+                            Get.put(LevelsController());
+                          },
+                          child: Text(
+                            AppStringEn.takeNewQuiz.tr,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
                       ),
-                    )
-
-
-
-                    // Expanded(
-                    //   child: ElevatedButton(
-                    //     onPressed: () {
-                    //       final blockcontroller = Get.find<LevelsController>();
-                    //       final blocks = blockcontroller.levelDetails['blocks'] as List? ?? [];
-                    //
-                    //       // Increment group index safely
-                    //       if (blockcontroller.index < blocks.length - 1) {
-                    //         blockcontroller.index++; // move to next block
-                    //       } else {
-                    //         blockcontroller.index = 0; // reset if last block
-                    //       }
-                    //
-                    //       // Navigate to GreetingsIntroScreen
-                    //       Get.offAllNamed(RouteName.greetingsAndIntro, id: NavIds.home);
-                    //
-                    //       // Ensure LevelsController is initialized / refreshed
-                    //       if (!Get.isRegistered<LevelsController>()) {
-                    //         Get.put(LevelsController());
-                    //       } else {
-                    //         blockcontroller.fetchLevelDetails();
-                    //       }
-                    //     },
-                    //     child: Text(
-                    //       AppStringEn.takeNewQuiz.tr,
-                    //       style: const TextStyle(
-                    //         color: Colors.white,
-                    //         fontSize: 14,
-                    //       ),
-                    //     ),
-                    //   ),
-                    // )
-
-
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
+          );
+        }),
       ),
     );
   }

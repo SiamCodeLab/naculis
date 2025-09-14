@@ -166,33 +166,27 @@ class _QuizScreenState extends State<QuizScreen> {
       final groups = (blocks.isNotEmpty) ? blocks[controller.index]['groups'] as List? ?? [] : [];
       final lessons = (groups.isNotEmpty) ? groups[controller.qIndex]['lessons'] as List? ?? [] : [];
 
-      // Assign lesson id before auto-submit so sendVoice includes it
       if (lessons.isNotEmpty) {
         answecontroller.lessonId = lessons[questionIndex.value]["lesson_id"];
       }
 
-      // Hard check: if hearts are 0 before submission, show a message and do not submit
       if (userController.user.value.hearts <= 0) {
         Get.snackbar('Please Refill Hearts', 'You do not have enough hearts.');
         return;
       }
 
-      await answecontroller.stopRecording(autoSubmit: true);
-      final success = await answecontroller.submitCurrentAnswer();
+      final success = await answecontroller.stopRecording(autoSubmit: true);
+      print("Submission success for voice (correct?): $success");
 
       if (success) {
-        // Hard check: if hearts are 0 after submission, show a message and do not advance
         if (userController.user.value.hearts <= 0) {
           Get.snackbar('No Hearts Left', 'You have run out of hearts. Please refill to continue.');
           return;
         }
-        if (lessons.isNotEmpty) {
-          _advanceOrFinish(lessons);
-        }
+        _advanceOrFinish(lessons);
         userController.fetchUserData();
       }
     } else {
-      // Start recording
       await answecontroller.startRecording();
       if (answecontroller.isRecording.value) {
         Get.snackbar("Recording Started", "Speak now...");
@@ -202,70 +196,73 @@ class _QuizScreenState extends State<QuizScreen> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     final title = controller.title;
     return Scaffold(
       appBar: CustomAppBar(),
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              TitleCard(title: title, subTitle: ""),
-              Padding(
-                padding: const EdgeInsets.only(top: 15),
-                child: Obx(
-                      () {
-                    final blocks = controller.levelDetails['blocks'] as List? ?? [];
-                    if (blocks.isEmpty) {
-                      return const Center(child: Text("No questions found"));
-                    }
-                    final groups = blocks[controller.index]['groups'] as List? ?? [];
-                    if (groups.isEmpty) {
-                      return const Center(child: Text("No groups found"));
-                    }
-                    final lessons = groups[controller.qIndex]['lessons'] as List? ?? [];
-                    if (lessons.isEmpty) {
-                      return const Center(child: Text("No lessons found"));
-                    }
-
-                    final question = lessons[questionIndex.value]['question'] ?? '';
-
-                    return QuestionCard(
-                      buttonText: answecontroller.isLoading.value ? 'Submitting...' : 'Submit your answer',
-                      question: question,
-                      controller: answecontroller.controller,
-                      onSubmit: _onSubmit,
-                      onTypeTap: _onTypeTap,
-                      onSpeakTap: _onSpeakTap,
-                      typeIcon: Image.asset(ImageAndIconConst.typeIcon),
-                      speakIcon: Obx(
-                            () => answecontroller.isRecording.value
-                            ? const Icon(Icons.mic, color: Colors.red, size: 30)
-                            : Image.asset(ImageAndIconConst.speakIcon),
-                      ),
-                      // // disable the submit button (if your QuestionCard allows)
-                      // isSubmitDisabled: answecontroller.isLoading.value,
-                    );
-                  },
+      body: SingleChildScrollView(
+        child: Stack(
+          children: [
+            Column(
+              children: [
+                TitleCard(title: title, subTitle: ""),
+                Padding(
+                  padding: const EdgeInsets.only(top: 15),
+                  child: Obx(
+                        () {
+                      final blocks = controller.levelDetails['blocks'] as List? ?? [];
+                      if (blocks.isEmpty) {
+                        return const Center(child: Text("No questions found"));
+                      }
+                      final groups = blocks[controller.index]['groups'] as List? ?? [];
+                      if (groups.isEmpty) {
+                        return const Center(child: Text("No groups found"));
+                      }
+                      final lessons = groups[controller.qIndex]['lessons'] as List? ?? [];
+                      if (lessons.isEmpty) {
+                        return const Center(child: Text("No lessons found"));
+                      }
+        
+                      final question = lessons[questionIndex.value]['question'] ?? '';
+        
+                      return QuestionCard(
+                        buttonText: answecontroller.isLoading.value ? 'Submitting...' : 'Submit your answer',
+                        question: question,
+                        controller: answecontroller.controller,
+                        onSubmit: _onSubmit,
+                        onTypeTap: _onTypeTap,
+                        onSpeakTap: _onSpeakTap,
+                        typeIcon: Image.asset(ImageAndIconConst.typeIcon),
+                        speakIcon: Obx(
+                              () => answecontroller.isRecording.value
+                              ? const Icon(Icons.mic, color: Colors.red, size: 30)
+                              : Image.asset(ImageAndIconConst.speakIcon),
+                        ),
+                        // // disable the submit button (if your QuestionCard allows)
+                        // isSubmitDisabled: answecontroller.isLoading.value,
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],
-          ),
-
-          // Full-screen loading overlay while submitting / converting etc.
-          Obx(() {
-            if (answecontroller.isLoading.value) {
-              return Container(
-                color: Colors.black26,
-                alignment: Alignment.center,
-                child: const CircularProgressIndicator(),
-              );
-            } else {
-              return const SizedBox.shrink();
-            }
-          }),
-        ],
+              ],
+            ),
+        
+            // Full-screen loading overlay while submitting / converting etc.
+            Obx(() {
+              if (answecontroller.isLoading.value) {
+                return Container(
+                  color: Colors.black26,
+                  alignment: Alignment.center,
+                  child: const CircularProgressIndicator(),
+                );
+              } else {
+                return const SizedBox.shrink();
+              }
+            }),
+          ],
+        ),
       ),
     );
   }
